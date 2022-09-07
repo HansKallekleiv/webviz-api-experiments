@@ -2,6 +2,7 @@ import io
 from fastapi import FastAPI, APIRouter, Depends
 from typing import Optional, List
 from fastapi.responses import StreamingResponse
+from fastapi.routing import APIRoute
 import numpy as np
 import xtgeo
 from _schemas import (
@@ -18,7 +19,13 @@ from _surface_to_png import surface_to_png_bytes_optimized
 from fastapi.middleware.cors import CORSMiddleware
 
 
-app = FastAPI(title="Map API", openapi_url="/openapi.json")
+def custom_generate_unique_id(route: APIRoute):
+    return f"{route.tags[0]}-{route.name}"
+
+
+app = FastAPI(
+    generate_unique_id_function=custom_generate_unique_id, openapi_url="/openapi.json"
+)
 origins = [
     "http://localhost:3000",
 ]
@@ -33,7 +40,7 @@ app.add_middleware(
 api_router = APIRouter()
 
 
-@api_router.get("/cases/", response_model=List[Case])
+@api_router.get("/cases/", tags=["sumo"], response_model=List[Case])
 def fetch_cases():
     """
     Fetch cases
@@ -41,7 +48,7 @@ def fetch_cases():
     return [Case(name="case1"), Case(name="case2")]
 
 
-@api_router.get("/iterations/", response_model=List[Iteration])
+@api_router.get("/iterations/", tags=["sumo"], response_model=List[Iteration])
 def fetch_iterations(case_name: str):
     """
     Fetch iterations for a case
@@ -52,7 +59,7 @@ def fetch_iterations(case_name: str):
         return [Iteration(name="iter-0")]
 
 
-@api_router.get("/realizations/", response_model=List[Realization])
+@api_router.get("/realizations/", tags=["sumo"], response_model=List[Realization])
 def fetch_realizations(case_name: str, iteration_name: str):
     """
     Fetch realizations for an iteration
@@ -63,7 +70,9 @@ def fetch_realizations(case_name: str, iteration_name: str):
         return [Realization(number=r) for r in range(0, 10)]
 
 
-@api_router.get("/surface_collection/", response_model=List[SurfaceAttribute])
+@api_router.get(
+    "/surface_collection/", tags=["sumo"], response_model=List[SurfaceAttribute]
+)
 def fetch_surface_collection(case_name: str, iteration_name: str):
     """
     Fetch all surfaces
@@ -85,12 +94,13 @@ def fetch_surface_collection(case_name: str, iteration_name: str):
         ]
 
 
-@api_router.get("/surface_data/", response_model=SurfaceDeckGLData)
+@api_router.get("/surface_data/", tags=["sumo"], response_model=SurfaceDeckGLData)
 def fetch_surface_data(
     surface_address: SurfaceAddress = Depends(),
 ):
     """
     Fetch a specific surface
+    Just creating a random image for testing
     """
     surface = xtgeo.RegularSurface(ncol=10, nrow=10, xinc=1, yinc=1)
     surface.values = np.random.rand(*surface.values.shape)
@@ -106,7 +116,7 @@ def fetch_surface_data(
     )
 
 
-@api_router.get("/surface_image/")
+@api_router.get("/surface_image/", tags=["sumo"])
 def fetch_surface_image(
     image_url: str,
 ):

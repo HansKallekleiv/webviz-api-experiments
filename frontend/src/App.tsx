@@ -1,59 +1,56 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { DeckGLMap } from "@webviz/subsurface-components";
+import {
+  SumoService,
+  Case,
+  Iteration,
+  Realization,
+  SurfaceAttribute,
+  SurfaceDeckGLData,
+} from "./api";
+
 function App() {
-  const [cases, setCases] = useState();
-  const [iterations, setIterations] = useState();
-  const [realizations, setRealizations] = useState();
-  const [attributes, setAttributes] = useState();
-  const [surfaceData, setSurfaceData] = useState();
+  const [cases, setCases] = useState<Case[]>();
+  const [iterations, setIterations] = useState<Iteration[]>();
+  const [realizations, setRealizations] = useState<Realization[]>();
+  const [attributes, setAttributes] = useState<SurfaceAttribute[]>();
+  const [surfaceData, setSurfaceData] = useState<SurfaceDeckGLData>();
   useEffect(() => {
-    fetch("/cases").then((res) =>
-      res.json().then((data) => {
-        setCases(data);
-      })
-    );
+    SumoService.sumoFetchCases().then((data) => setCases(data));
   }, []);
   useEffect(() => {
     if (cases) {
-      fetch(`/iterations?case_name=${cases[0].name}`).then((res) =>
-        res.json().then((data) => {
-          setIterations(data);
-        })
+      SumoService.sumoFetchIterations(cases[0].name).then((data) =>
+        setIterations(data)
       );
     }
   }, [cases]);
   useEffect(() => {
-    if (iterations) {
-      fetch(
-        `/realizations?case_name=${cases[0].name}&iteration_name=${iterations[0].name}`
-      ).then((res) =>
-        res.json().then((data) => {
-          setRealizations(data);
-        })
+    if (iterations && cases) {
+      SumoService.sumoFetchRealizations(cases[0].name, iterations[0].name).then(
+        (data) => setRealizations(data)
       );
     }
   }, [iterations]);
   useEffect(() => {
-    if (realizations) {
-      fetch(
-        `/surface_collection?case_name=${cases[0].name}&iteration_name=${iterations[0].name}`
-      ).then((res) =>
-        res.json().then((data) => {
-          setAttributes(data);
-        })
-      );
+    if (cases && iterations && realizations) {
+      SumoService.sumoFetchSurfaceCollection(
+        cases[0].name,
+        iterations[0].name
+      ).then((data) => {
+        setAttributes(data);
+      });
     }
   }, [realizations]);
   useEffect(() => {
-    if (attributes) {
-      fetch(
-        `/surface_data?case_name=${cases[0].name}&iteration_name=${iterations[0].name}&attribute_name=${attributes[0].attribute}&surface_name=${attributes[0].surface_names[0]}`
-      ).then((res) =>
-        res.json().then((data) => {
-          setSurfaceData(data);
-          console.log(JSON.stringify(data));
-        })
-      );
+    if (cases && iterations && realizations && attributes) {
+      SumoService.sumoFetchSurfaceData(
+        cases[0].name,
+        iterations[0].name,
+        realizations[0].number,
+        attributes[0].attribute,
+        attributes[0].surface_names[0]
+      ).then((data) => setSurfaceData(data));
     }
   }, [attributes]);
 

@@ -28,6 +28,7 @@ class SurfaceAttribute(BaseModel):
 class SurfaceAddress(BaseModel):
     case_name: str
     iteration_name: str
+    realization_number: int
     attribute_name: str
     surface_name: str
     surface_date: Optional[str]
