@@ -1,1 +1,0 @@
-MOCKSUMO = {"case1":{}, "case2":{}}

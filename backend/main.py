@@ -39,11 +39,14 @@ app.add_middleware(
 )
 api_router = APIRouter()
 
+"""TODO: Add oauth middleware"""
+
 
 @api_router.get("/cases/", tags=["sumo"], response_model=List[Case])
 def fetch_cases():
     """
-    Fetch cases
+    Returns case objects from Sumo.
+    TODO: Select field
     """
     return [Case(name="case1"), Case(name="case2")]
 
@@ -51,7 +54,7 @@ def fetch_cases():
 @api_router.get("/iterations/", tags=["sumo"], response_model=List[Iteration])
 def fetch_iterations(case_name: str):
     """
-    Fetch iterations for a case
+    Fetch iterations for a Sumo case
     """
     if case_name == "case1":
         return [Iteration(name="iter-0"), Iteration(name="iter-3")]
@@ -62,7 +65,7 @@ def fetch_iterations(case_name: str):
 @api_router.get("/realizations/", tags=["sumo"], response_model=List[Realization])
 def fetch_realizations(case_name: str, iteration_name: str):
     """
-    Fetch realizations for an iteration
+    Fetch realizations for a Sumo iteration
     """
     if case_name == "case1":
         return [Realization(number=r) for r in range(0, 100)]
@@ -75,7 +78,7 @@ def fetch_realizations(case_name: str, iteration_name: str):
 )
 def fetch_surface_collection(case_name: str, iteration_name: str):
     """
-    Fetch all surfaces
+    Fetch all available surface objects given a Sumo case and  iteration
     """
     if case_name == "case1":
         return [
@@ -99,8 +102,10 @@ def fetch_surface_data(
     surface_address: SurfaceAddress = Depends(),
 ):
     """
-    Fetch a specific surface
-    Just creating a random image for testing
+    Fetch metadata for a specific surface, and an url pointer to the
+    image array.
+    Probably better to send the image data directly here, possible
+    just send the raw array and then generate the image on the frontend.
     """
     surface = xtgeo.RegularSurface(ncol=10, nrow=10, xinc=1, yinc=1)
     surface.values = np.random.rand(*surface.values.shape)
@@ -121,11 +126,10 @@ def fetch_surface_image(
     image_url: str,
 ):
     """
-    Surface img to deckgl
+    Returns the surface image
     """
     surface = xtgeo.RegularSurface(ncol=10, nrow=10, xinc=1, yinc=1)
     surface.values = np.random.rand(*surface.values.shape)
-    print(surface.values)
     img = surface_to_png_bytes_optimized(surface)
     return StreamingResponse(io.BytesIO(img), media_type="image/png")
 
