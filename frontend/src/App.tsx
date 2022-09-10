@@ -7,10 +7,48 @@ import {
   Realization,
   SurfaceAttribute,
   SurfaceDeckGLData,
+  SmdaService,
+  Trajectory,
 } from "./api";
+
+const trajectories2deckgl = (trajectories?: Trajectory[]) => {
+  if (!trajectories) {
+    return { type: "FeatureCollection", features: [] };
+  }
+  const data = {
+    type: "FeatureCollection",
+    features: trajectories.map((traj) => {
+      return {
+        type: "Feature",
+        geometry: {
+          type: "GeometryCollection",
+          geometries: [
+            {
+              type: "Point",
+              coordinates: [traj.x_arr[0], traj.y_arr[0]],
+            },
+            {
+              type: "LineString",
+              coordinates: traj.x_arr.map((x, idx) => {
+                return [traj.x_arr[idx], traj.y_arr[idx], traj.z_arr[idx]];
+              }),
+            },
+          ],
+        },
+        properties: {
+          name: traj.name,
+          color: [28, 255, 12, 255],
+          md: [traj.md_arr],
+        },
+      };
+    }),
+  };
+  return data;
+};
 
 function App() {
   const [cases, setCases] = useState<Case[]>();
+  const [trajectories, setTrajectories] = useState<Trajectory[]>();
   const [iterations, setIterations] = useState<Iteration[]>();
   const [realizations, setRealizations] = useState<Realization[]>();
   const [attributes, setAttributes] = useState<SurfaceAttribute[]>();
@@ -22,6 +60,9 @@ function App() {
     if (cases) {
       SumoService.sumoFetchIterations(cases[0].name).then((data) =>
         setIterations(data)
+      );
+      SmdaService.smdaFetchWellTrajectories().then((data) =>
+        setTrajectories(data)
       );
     }
   }, [cases]);
@@ -70,7 +111,7 @@ function App() {
               "@@type": "ColormapLayer",
 
               pickable: true,
-              image: `http://localhost:5000/surface_image/?image_url=${surfaceData.image_url}`,
+              image: `http://localhost:5000/sumo/surface_image/?image_url=${surfaceData.image_url}`,
               bounds: [
                 surfaceData.xmin,
                 surfaceData.ymin,
@@ -82,17 +123,11 @@ function App() {
               valueRange: [surfaceData.zmin, surfaceData.zmax],
               colorMapRange: [surfaceData.zmin, surfaceData.zmax],
             },
+            {
+              "@@type": "WellsLayer",
+              data: trajectories2deckgl(trajectories),
+            },
           ]}
-          views={{
-            layout: [1, 1],
-            viewports: [
-              {
-                id: "view_1",
-                show3D: false,
-                layerIds: [],
-              },
-            ],
-          }}
         ></DeckGLMap>
       )}
     </div>

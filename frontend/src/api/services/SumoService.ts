@@ -15,20 +15,24 @@ export class SumoService {
 
     /**
      * Fetch Cases
-     * Fetch cases
+     * Returns case objects from Sumo.
+     * TODO: Select field
      * @returns Case Successful Response
      * @throws ApiError
      */
     public static sumoFetchCases(): CancelablePromise<Array<Case>> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/cases/',
+            url: '/sumo/cases/',
+            errors: {
+                404: `Not found`,
+            },
         });
     }
 
     /**
      * Fetch Iterations
-     * Fetch iterations for a case
+     * Fetch iterations for a Sumo case
      * @param caseName
      * @returns Iteration Successful Response
      * @throws ApiError
@@ -38,11 +42,12 @@ export class SumoService {
     ): CancelablePromise<Array<Iteration>> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/iterations/',
+            url: '/sumo/iterations/',
             query: {
                 'case_name': caseName,
             },
             errors: {
+                404: `Not found`,
                 422: `Validation Error`,
             },
         });
@@ -50,7 +55,7 @@ export class SumoService {
 
     /**
      * Fetch Realizations
-     * Fetch realizations for an iteration
+     * Fetch realizations for a Sumo iteration
      * @param caseName
      * @param iterationName
      * @returns Realization Successful Response
@@ -62,12 +67,13 @@ export class SumoService {
     ): CancelablePromise<Array<Realization>> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/realizations/',
+            url: '/sumo/realizations/',
             query: {
                 'case_name': caseName,
                 'iteration_name': iterationName,
             },
             errors: {
+                404: `Not found`,
                 422: `Validation Error`,
             },
         });
@@ -75,7 +81,7 @@ export class SumoService {
 
     /**
      * Fetch Surface Collection
-     * Fetch all surfaces
+     * Fetch all available surface objects given a Sumo case and  iteration
      * @param caseName
      * @param iterationName
      * @returns SurfaceAttribute Successful Response
@@ -87,12 +93,13 @@ export class SumoService {
     ): CancelablePromise<Array<SurfaceAttribute>> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/surface_collection/',
+            url: '/sumo/surface_collection/',
             query: {
                 'case_name': caseName,
                 'iteration_name': iterationName,
             },
             errors: {
+                404: `Not found`,
                 422: `Validation Error`,
             },
         });
@@ -100,8 +107,10 @@ export class SumoService {
 
     /**
      * Fetch Surface Data
-     * Fetch a specific surface
-     * Just creating a random image for testing
+     * Fetch metadata for a specific surface, and an url pointer to the
+     * image array.
+     * Probably better to send the image data directly here, possible
+     * just send the raw array and then generate the image on the frontend.
      * @param caseName
      * @param iterationName
      * @param realizationNumber
@@ -121,7 +130,7 @@ export class SumoService {
     ): CancelablePromise<SurfaceDeckGLData> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/surface_data/',
+            url: '/sumo/surface_data/',
             query: {
                 'case_name': caseName,
                 'iteration_name': iterationName,
@@ -131,6 +140,7 @@ export class SumoService {
                 'surface_date': surfaceDate,
             },
             errors: {
+                404: `Not found`,
                 422: `Validation Error`,
             },
         });
@@ -138,7 +148,7 @@ export class SumoService {
 
     /**
      * Fetch Surface Image
-     * Surface img to deckgl
+     * Returns the surface image
      * @param imageUrl
      * @returns any Successful Response
      * @throws ApiError
@@ -148,11 +158,12 @@ export class SumoService {
     ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/surface_image/',
+            url: '/sumo/surface_image/',
             query: {
                 'image_url': imageUrl,
             },
             errors: {
+                404: `Not found`,
                 422: `Validation Error`,
             },
         });
